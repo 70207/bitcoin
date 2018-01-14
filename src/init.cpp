@@ -904,14 +904,22 @@ bool AppInitParameterInteraction()
     int nBind = std::max(nUserBind, size_t(1));
     nUserMaxConnections = gArgs.GetArg("-maxconnections", DEFAULT_MAX_PEER_CONNECTIONS);
     nMaxConnections = std::max(nUserMaxConnections, 0);
-
+    LogPrintXD(nMaxConnections);
+    LogPrintXD(FD_SETSIZE);
+    LogPrintXD(nBind);
+    LogPrintXD(MIN_CORE_FILEDESCRIPTORS);
+    LogPrintXD(MAX_ADDNODE_CONNECTIONS);
+    
     // Trim requested connection counts, to fit into system limitations
     nMaxConnections = std::max(std::min(nMaxConnections, (int)(FD_SETSIZE - nBind - MIN_CORE_FILEDESCRIPTORS - MAX_ADDNODE_CONNECTIONS)), 0);
+    LogPrintXD(nMaxConnections);
+
     nFD = RaiseFileDescriptorLimit(nMaxConnections + MIN_CORE_FILEDESCRIPTORS + MAX_ADDNODE_CONNECTIONS);
     if (nFD < MIN_CORE_FILEDESCRIPTORS)
         return InitError(_("Not enough file descriptors available."));
     nMaxConnections = std::min(nFD - MIN_CORE_FILEDESCRIPTORS - MAX_ADDNODE_CONNECTIONS, nMaxConnections);
-
+    LogPrintXD(nFD);
+    LogPrintXD(nMaxConnections);
     if (nMaxConnections < nUserMaxConnections)
         InitWarning(strprintf(_("Reducing -maxconnections from %d to %d, because of system limitations."), nUserMaxConnections, nMaxConnections));
 

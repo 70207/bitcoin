@@ -565,6 +565,42 @@ bool CService::GetSockAddr(struct sockaddr* paddr, socklen_t *addrlen) const
     return false;
 }
 
+bool CService::GetSockAddr(char* buffer, int bufLen) const
+{
+    if (IsIPv4()) {
+        if (bufLen < (socklen_t)sizeof(struct sockaddr_in))
+            return false;
+        size_t sz = sizeof(struct sockaddr_in);
+        struct sockaddr_in  _addr;
+        struct sockaddr_in *paddrin = &_addr;
+        memset(paddrin, 0, sz);
+        if (!GetInAddr(&paddrin->sin_addr))
+            return false;
+        
+        snprintf(buffer, bufLen, "IPV4:%s:%d", inet_ntoa(_addr.sin_addr), htons(port));
+
+        return true;
+    }
+    if (IsIPv6()) {
+        if (bufLen < (socklen_t)sizeof(struct sockaddr_in6))
+            return false;
+        size_t sz = sizeof(struct sockaddr_in6);
+        struct sockaddr_in6 _addr;
+        struct sockaddr_in6 *paddrin6 = &_addr;
+        memset(paddrin6, 0, sz);
+        if (!GetIn6Addr(&paddrin6->sin6_addr))
+            return false;
+        paddrin6->sin6_scope_id = scopeId;
+        paddrin6->sin6_family = AF_INET6;
+        paddrin6->sin6_port = htons(port);
+
+        strcpy(buffer, "IPV6:");
+        inet_ntop(AF_INET6, &paddrin6->sin6_addr, buffer + 5, bufLen - 5);
+        return true;
+    }
+    return false;
+}
+
 std::vector<unsigned char> CService::GetKey() const
 {
      std::vector<unsigned char> vKey;

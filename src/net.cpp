@@ -2489,6 +2489,11 @@ void CConnman::MarkAddressGood(const CAddress& addr)
 
 void CConnman::AddNewAddresses(const std::vector<CAddress>& vAddr, const CAddress& addrFrom, int64_t nTimePenalty)
 {
+    char buffer[4096];
+    addrFrom.GetSockAddr(buffer, 4096);
+    
+    LogPrintX("add new addresses, vaddr size:%d, from:%s\n", vAddr.size(), buffer);
+
     addrman.Add(vAddr, addrFrom, nTimePenalty);
 }
 

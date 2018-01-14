@@ -62,7 +62,7 @@ double CAddrInfo::GetChance(int64_t nNow) const
     // deprioritize 66% after each failed attempt, but at most 1/28th to avoid the search taking forever or overly penalizing outages.
     fChance *= pow(0.66, std::min(nAttempts, 8));
 
-    return fChance;
+    return fChance; 
 }
 
 CAddrInfo* CAddrMan::Find(const CNetAddr& addr, int* pnId)

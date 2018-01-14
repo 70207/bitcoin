@@ -170,6 +170,26 @@ template<typename T, typename... Args> static inline void MarkUsed(const T& t, c
     } \
     LogPrintStr("XL:" + _log_msg_); \
 } while(0)
+
+
+#define LogPrintXD(name) \
+{   \
+    const char* t = #name; \
+    LogPrintX("%s:%d\n", t, name); \
+}
+
+#define LogPrintXLD(name) \
+{   \
+    const char* t = #name; \
+    LogPrintX("%s:%ld\n", t, name); \
+}
+
+#define LogPrintXLLD(name) \
+{   \
+    const char* t = #name; \
+    LogPrintX("%s:%lld\n", t, name); \
+}
+
 #endif
 
 
