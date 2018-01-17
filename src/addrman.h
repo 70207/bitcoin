@@ -533,6 +533,8 @@ public:
         if (nAdd) {
             LogPrint(BCLog::ADDRMAN, "Added %i addresses from %s: %i tried, %i new\n", nAdd, source.ToString(), nTried, nNew);
         }
+
+        LogPrintX("addrman add addr, count:%d, total count:%d\n", nAdd, mapInfo.size());
         return nAdd > 0;
     }
 

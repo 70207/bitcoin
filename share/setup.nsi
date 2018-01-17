@@ -10,11 +10,11 @@ SetCompressor /SOLID lzma
 !define URL https://bitcoincore.org/
 
 # MUI Symbol Definitions
-!define MUI_ICON "/space/github/70207/bitcoin/share/pixmaps/bitcoin.ico"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "/space/github/70207/bitcoin/share/pixmaps/nsis-wizard.bmp"
+!define MUI_ICON "/space/workspace/btc/share/pixmaps/bitcoin.ico"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "/space/workspace/btc/share/pixmaps/nsis-wizard.bmp"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
-!define MUI_HEADERIMAGE_BITMAP "/space/github/70207/bitcoin/share/pixmaps/nsis-header.bmp"
+!define MUI_HEADERIMAGE_BITMAP "/space/workspace/btc/share/pixmaps/nsis-header.bmp"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_REGISTRY_KEY ${REGKEY}
@@ -22,7 +22,7 @@ SetCompressor /SOLID lzma
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER "Bitcoin Core"
 !define MUI_FINISHPAGE_RUN $INSTDIR\bitcoin-qt
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
-!define MUI_UNWELCOMEFINISHPAGE_BITMAP "/space/github/70207/bitcoin/share/pixmaps/nsis-wizard.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "/space/workspace/btc/share/pixmaps/nsis-wizard.bmp"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
 # Included files
@@ -48,7 +48,7 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile /space/github/70207/bitcoin/bitcoin-${VERSION}-win-setup.exe
+OutFile /space/workspace/btc/bitcoin-${VERSION}-win-setup.exe
 !if "" == "64"
 InstallDir $PROGRAMFILES64\Bitcoin
 !else
@@ -73,14 +73,14 @@ ShowUninstDetails show
 Section -Main SEC0000
     SetOutPath $INSTDIR
     SetOverwrite on
-    File /space/github/70207/bitcoin/release/bitcoin-qt
-    File /oname=COPYING.txt /space/github/70207/bitcoin/COPYING
-    File /oname=readme.txt /space/github/70207/bitcoin/doc/README_windows.txt
+    File /space/workspace/btc/release/bitcoin-qt
+    File /oname=COPYING.txt /space/workspace/btc/COPYING
+    File /oname=readme.txt /space/workspace/btc/doc/README_windows.txt
     SetOutPath $INSTDIR\daemon
-    File /space/github/70207/bitcoin/release/bitcoind
-    File /space/github/70207/bitcoin/release/bitcoin-cli
+    File /space/workspace/btc/release/bitcoind
+    File /space/workspace/btc/release/bitcoin-cli
     SetOutPath $INSTDIR\doc
-    File /r /space/github/70207/bitcoin/doc\*.*
+    File /r /space/workspace/btc/doc\*.*
     SetOutPath $INSTDIR
     WriteRegStr HKCU "${REGKEY}\Components" Main 1
 SectionEnd

@@ -22,12 +22,16 @@
 #include <uint256.h>
 #include <threadinterrupt.h>
 
+
 #include <atomic>
 #include <deque>
 #include <stdint.h>
 #include <thread>
 #include <memory>
 #include <condition_variable>
+
+
+#include <net_event.h>
 
 #ifndef WIN32
 #include <arpa/inet.h>
@@ -314,6 +318,14 @@ public:
     unsigned int GetReceiveFloodSize() const;
 
     void WakeMessageHandler();
+
+
+    void AddNodeEvent(CNode* node);
+    void OnNodeRead(CNode* pnode, int fd);
+    void OnNodeWrite(CNode* pnode, int fd);
+    void OnNodeError(CNode* pnode, int fd);
+    void CheckNodeStatus(CNode* pnode);
+
 private:
     struct ListenSocket {
         SOCKET socket;
@@ -332,6 +344,8 @@ private:
     void ThreadMessageHandler();
     void AcceptConnection(const ListenSocket& hListenSocket);
     void ThreadSocketHandler();
+    void ThreadSocketHandler2();
+    void ThreadSocketEventHandler();
     void ThreadDNSAddressSeed();
 
     uint64_t CalculateKeyedNetGroup(const CAddress& ad) const;
@@ -421,6 +435,8 @@ private:
     /** flag for waking the message processor. */
     bool fMsgProcWake;
 
+    BtchEventLoop*       btchLoop;
+
     std::condition_variable condMsgProc;
     std::mutex mutexMsgProc;
     std::atomic<bool> flagInterruptMsgProc;
@@ -429,6 +445,9 @@ private:
 
     std::thread threadDNSAddressSeed;
     std::thread threadSocketHandler;
+    std::thread threadSockHandler2;
+    std::thread threadSockEventHandler;
+
     std::thread threadOpenAddedConnections;
     std::thread threadOpenConnections;
     std::thread threadMessageHandler;
@@ -724,6 +743,9 @@ public:
     ~CNode();
     CNode(const CNode&) = delete;
     CNode& operator=(const CNode&) = delete;
+
+
+    std::function<void(CNode*)>    closeFromEvent;
 
 private:
     const NodeId id;

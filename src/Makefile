@@ -412,6 +412,7 @@ am_libbitcoin_server_a_OBJECTS = libbitcoin_server_a-addrdb.$(OBJEXT) \
 	libbitcoin_server_a-merkleblock.$(OBJEXT) \
 	libbitcoin_server_a-miner.$(OBJEXT) \
 	libbitcoin_server_a-net.$(OBJEXT) \
+	libbitcoin_server_a-net_event.$(OBJEXT) \
 	libbitcoin_server_a-net_processing.$(OBJEXT) \
 	libbitcoin_server_a-noui.$(OBJEXT) \
 	policy/libbitcoin_server_a-fees.$(OBJEXT) \
@@ -452,13 +453,13 @@ am__libbitcoin_util_a_SOURCES_DIST = support/lockedpool.cpp \
 	consensus/consensus.h consensus/tx_verify.h core_io.h \
 	core_memusage.h cuckoocache.h fs.h httprpc.h httpserver.h \
 	indirectmap.h init.h key.h keystore.h dbwrapper.h limitedmap.h \
-	memusage.h merkleblock.h miner.h net.h net_processing.h \
-	netaddress.h netbase.h netmessagemaker.h noui.h \
-	policy/feerate.h policy/fees.h policy/policy.h policy/rbf.h \
-	pow.h protocol.h random.h reverse_iterator.h reverselock.h \
-	rpc/blockchain.h rpc/client.h rpc/mining.h rpc/protocol.h \
-	rpc/safemode.h rpc/server.h rpc/register.h scheduler.h \
-	script/sigcache.h script/sign.h script/standard.h \
+	memusage.h merkleblock.h miner.h net.h net_event.h \
+	net_processing.h netaddress.h netbase.h netmessagemaker.h \
+	noui.h policy/feerate.h policy/fees.h policy/policy.h \
+	policy/rbf.h pow.h protocol.h random.h reverse_iterator.h \
+	reverselock.h rpc/blockchain.h rpc/client.h rpc/mining.h \
+	rpc/protocol.h rpc/safemode.h rpc/server.h rpc/register.h \
+	scheduler.h script/sigcache.h script/sign.h script/standard.h \
 	script/ismine.h streams.h support/allocators/secure.h \
 	support/allocators/zeroafterfree.h support/cleanse.h \
 	support/events.h support/lockedpool.h sync.h threadsafety.h \
@@ -1548,14 +1549,14 @@ am__relativize = \
     dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
   done; \
   reldir="$$dir2"
-ACLOCAL = ${SHELL} /space/github/70207/bitcoin/build-aux/missing aclocal-1.15
+ACLOCAL = ${SHELL} /space/workspace/btc/build-aux/missing aclocal-1.15
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 0
 AR = /usr/bin/ar
 ARFLAGS = cr
-AUTOCONF = ${SHELL} /space/github/70207/bitcoin/build-aux/missing autoconf
-AUTOHEADER = ${SHELL} /space/github/70207/bitcoin/build-aux/missing autoheader
-AUTOMAKE = ${SHELL} /space/github/70207/bitcoin/build-aux/missing automake-1.15
+AUTOCONF = ${SHELL} /space/workspace/btc/build-aux/missing autoconf
+AUTOHEADER = ${SHELL} /space/workspace/btc/build-aux/missing autoheader
+AUTOMAKE = ${SHELL} /space/workspace/btc/build-aux/missing automake-1.15
 AWK = mawk
 BDB_CFLAGS = 
 BDB_CPPFLAGS = 
@@ -1645,18 +1646,18 @@ LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIBTOOL_APP_LDFLAGS = 
 LIPO = 
 LN_S = ln -s
-LRELEASE = /usr/lib/x86_64-linux-gnu/qt5/bin/lrelease
+LRELEASE = /usr/bin/lrelease-qt4
 LTLIBOBJS = 
 LT_SYS_LIBRARY_PATH = 
-LUPDATE = /usr/lib/x86_64-linux-gnu/qt5/bin/lupdate
+LUPDATE = /usr/bin/lupdate-qt4
 MAINT = 
-MAKEINFO = ${SHELL} /space/github/70207/bitcoin/build-aux/missing makeinfo
+MAKEINFO = ${SHELL} /space/workspace/btc/build-aux/missing makeinfo
 MAKENSIS = 
 MANIFEST_TOOL = :
 MINIUPNPC_CPPFLAGS = 
 MINIUPNPC_LIBS = -lminiupnpc
 MKDIR_P = /bin/mkdir -p
-MOC = /usr/lib/x86_64-linux-gnu/qt5/bin/moc
+MOC = /usr/bin/moc-qt4
 MOC_DEFS = -DHAVE_CONFIG_H -I$(srcdir)
 NM = /usr/bin/nm -B
 NMEDIT = 
@@ -1682,9 +1683,9 @@ PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
 PKG_CONFIG_PATH = 
 PORT = 
-PROTOBUF_CFLAGS = -pthread
-PROTOBUF_LIBS = -lprotobuf -pthread -lpthread
-PROTOC = /usr/bin/protoc
+PROTOBUF_CFLAGS = -pthread -I/usr/local/include
+PROTOBUF_LIBS = -L/usr/local/lib -lprotobuf -pthread -lpthread
+PROTOC = /usr/local/bin/protoc
 PTHREAD_CC = gcc
 PTHREAD_CFLAGS = -pthread
 PTHREAD_LIBS = 
@@ -1692,30 +1693,30 @@ PYTHON = /usr/bin/python3.5
 PYTHONPATH = 
 QR_CFLAGS = 
 QR_LIBS = -lqrencode
-QT4_CFLAGS = 
-QT4_LIBS = 
-QT5_CFLAGS = -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5
-QT5_LIBS = -lQt5Network -lQt5Widgets -lQt5Gui -lQt5Core
+QT4_CFLAGS = -DQT_SHARED -I/usr/include/qt4 -I/usr/include/qt4/QtGui -I/usr/include/qt4 -I/usr/include/qt4/QtNetwork -I/usr/include/qt4 -I/usr/include/qt4/QtCore
+QT4_LIBS = -lQtGui -lQtNetwork -lQtCore
+QT5_CFLAGS = 
+QT5_LIBS = 
 QTPLATFORM_CFLAGS = 
 QTPLATFORM_LIBS = 
 QTPRINT_CFLAGS = 
 QTPRINT_LIBS = 
 QTXCBQPA_CFLAGS = 
 QTXCBQPA_LIBS = 
-QT_DBUS_CFLAGS = -I/usr/include/x86_64-linux-gnu/qt5/QtDBus -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5
-QT_DBUS_INCLUDES = -I/usr/include/x86_64-linux-gnu/qt5/QtDBus -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5
-QT_DBUS_LIBS = -lQt5DBus -lQt5Core
-QT_INCLUDES = -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5
+QT_DBUS_CFLAGS = -DQT_SHARED -I/usr/include/qt4 -I/usr/include/qt4/QtDBus -I/usr/include/qt4 -I/usr/include/qt4/QtXml -I/usr/include/qt4 -I/usr/include/qt4/QtCore
+QT_DBUS_INCLUDES = -DQT_SHARED -I/usr/include/qt4 -I/usr/include/qt4/QtDBus -I/usr/include/qt4 -I/usr/include/qt4/QtXml -I/usr/include/qt4 -I/usr/include/qt4/QtCore
+QT_DBUS_LIBS = -lQtDBus -lQtXml -lQtCore
+QT_INCLUDES = -DQT_SHARED -I/usr/include/qt4 -I/usr/include/qt4/QtGui -I/usr/include/qt4 -I/usr/include/qt4/QtNetwork -I/usr/include/qt4 -I/usr/include/qt4/QtCore
 QT_LDFLAGS = 
-QT_LIBS = -lQt5Network -lQt5Widgets -lQt5Gui -lQt5Core
-QT_PIE_FLAGS = -fPIC
-QT_SELECT = qt5
-QT_TEST_CFLAGS = -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5
-QT_TEST_INCLUDES = -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/x86_64-linux-gnu/qt5
-QT_TEST_LIBS = -lQt5Test -lQt5Core
+QT_LIBS = -lQtGui -lQtNetwork -lQtCore
+QT_PIE_FLAGS = -fPIE
+QT_SELECT = qt4
+QT_TEST_CFLAGS = -DQT_SHARED -I/usr/include/qt4 -I/usr/include/qt4/QtTest
+QT_TEST_INCLUDES = -DQT_SHARED -I/usr/include/qt4 -I/usr/include/qt4/QtTest
+QT_TEST_LIBS = -lQtTest
 QT_TRANSLATION_DIR = 
 RANLIB = /usr/bin/ranlib
-RCC = /usr/lib/x86_64-linux-gnu/qt5/bin/rcc
+RCC = /usr/bin/rcc
 READELF = /usr/bin/readelf
 RELDFLAGS = 
 RSVG_CONVERT = 
@@ -1728,7 +1729,7 @@ SSL_LIBS = -lssl
 STRIP = /usr/bin/strip
 TESTDEFS =  -DBOOST_TEST_DYN_LINK
 TIFFCP = 
-UIC = /usr/lib/x86_64-linux-gnu/qt5/bin/uic
+UIC = /usr/bin/uic-qt4
 UNIVALUE_CFLAGS = -I$(srcdir)/univalue/include
 UNIVALUE_LIBS = univalue/libunivalue.la
 USE_QRCODE = 
@@ -1741,10 +1742,10 @@ X11XCB_LIBS =
 XGETTEXT = /usr/bin/xgettext
 ZMQ_CFLAGS = 
 ZMQ_LIBS = -lzmq
-abs_builddir = /space/github/70207/bitcoin/src
-abs_srcdir = /space/github/70207/bitcoin/src
-abs_top_builddir = /space/github/70207/bitcoin
-abs_top_srcdir = /space/github/70207/bitcoin
+abs_builddir = /space/workspace/btc/src
+abs_srcdir = /space/workspace/btc/src
+abs_top_builddir = /space/workspace/btc
+abs_top_srcdir = /space/workspace/btc
 ac_ct_AR = ar
 ac_ct_CC = gcc
 ac_ct_CXX = g++
@@ -1776,7 +1777,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /space/github/70207/bitcoin/build-aux/install-sh
+install_sh = ${SHELL} /space/workspace/btc/build-aux/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -1866,6 +1867,7 @@ BITCOIN_CORE_H = \
   merkleblock.h \
   miner.h \
   net.h \
+  net_event.h \
   net_processing.h \
   netaddress.h \
   netbase.h \
@@ -1948,6 +1950,7 @@ libbitcoin_server_a_SOURCES = \
   merkleblock.cpp \
   miner.cpp \
   net.cpp \
+  net_event.cpp \
   net_processing.cpp \
   noui.cpp \
   policy/fees.cpp \
@@ -3920,6 +3923,7 @@ include ./$(DEPDIR)/libbitcoin_server_a-init.Po
 include ./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po
 include ./$(DEPDIR)/libbitcoin_server_a-miner.Po
 include ./$(DEPDIR)/libbitcoin_server_a-net.Po
+include ./$(DEPDIR)/libbitcoin_server_a-net_event.Po
 include ./$(DEPDIR)/libbitcoin_server_a-net_processing.Po
 include ./$(DEPDIR)/libbitcoin_server_a-noui.Po
 include ./$(DEPDIR)/libbitcoin_server_a-pow.Po
@@ -5623,6 +5627,20 @@ libbitcoin_server_a-net.obj: net.cpp
 #	$(AM_V_CXX)source='net.cpp' object='libbitcoin_server_a-net.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-net.obj `if test -f 'net.cpp'; then $(CYGPATH_W) 'net.cpp'; else $(CYGPATH_W) '$(srcdir)/net.cpp'; fi`
+
+libbitcoin_server_a-net_event.o: net_event.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-net_event.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-net_event.Tpo -c -o libbitcoin_server_a-net_event.o `test -f 'net_event.cpp' || echo '$(srcdir)/'`net_event.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-net_event.Tpo $(DEPDIR)/libbitcoin_server_a-net_event.Po
+#	$(AM_V_CXX)source='net_event.cpp' object='libbitcoin_server_a-net_event.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-net_event.o `test -f 'net_event.cpp' || echo '$(srcdir)/'`net_event.cpp
+
+libbitcoin_server_a-net_event.obj: net_event.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-net_event.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-net_event.Tpo -c -o libbitcoin_server_a-net_event.obj `if test -f 'net_event.cpp'; then $(CYGPATH_W) 'net_event.cpp'; else $(CYGPATH_W) '$(srcdir)/net_event.cpp'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-net_event.Tpo $(DEPDIR)/libbitcoin_server_a-net_event.Po
+#	$(AM_V_CXX)source='net_event.cpp' object='libbitcoin_server_a-net_event.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-net_event.obj `if test -f 'net_event.cpp'; then $(CYGPATH_W) 'net_event.cpp'; else $(CYGPATH_W) '$(srcdir)/net_event.cpp'; fi`
 
 libbitcoin_server_a-net_processing.o: net_processing.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-net_processing.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-net_processing.Tpo -c -o libbitcoin_server_a-net_processing.o `test -f 'net_processing.cpp' || echo '$(srcdir)/'`net_processing.cpp
