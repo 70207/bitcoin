@@ -32,6 +32,7 @@
 
 
 #include <net_event.h>
+#include <net_db.h>
 
 #ifndef WIN32
 #include <arpa/inet.h>
@@ -172,6 +173,7 @@ public:
             LOCK(cs_vAddedNodes);
             vAddedNodes = connOptions.m_added_nodes;
         }
+
     }
 
     CConnman(uint64_t seed0, uint64_t seed1);

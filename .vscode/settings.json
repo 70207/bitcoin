@@ -37,6 +37,9 @@
         "typeinfo": "cpp",
         "utility": "cpp",
         "codecvt": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "ios": "cpp",
+        "map": "cpp",
+        "vector": "cpp"
     }
 }

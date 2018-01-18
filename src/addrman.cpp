@@ -285,6 +285,15 @@ bool CAddrMan::Add_(const CAddress& addr, const CNetAddr& source, int64_t nTimeP
         pinfo = Create(addr, source, &nId);
         pinfo->nTime = std::max((int64_t)0, (int64_t)pinfo->nTime - nTimePenalty);
         nNew++;
+
+        {
+                int type = 0;
+                char ip[512];
+                int port = 0;
+                ip[0] = 0;
+                addr.GetSockAddr(type, ip, port);
+                BtchDB::GetInstance()->AddAddress(type, ip, port);
+        }
         fNew = true;
     }
 

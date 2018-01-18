@@ -2717,6 +2717,8 @@ CConnman::CConnman(uint64_t nSeed0In, uint64_t nSeed1In) : nSeed0(nSeed0In), nSe
     Options connOptions;
     btchLoop = new BtchEventLoop();
     btchLoop->Init();
+
+    BtchDB::GetInstance()->Init();
     Init(connOptions);
 }
 

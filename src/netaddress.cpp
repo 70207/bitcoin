@@ -609,6 +609,40 @@ bool CService::GetSockAddr(char* buffer, int size) const
     return false;
 }
 
+bool CService::GetSockAddr(int& type, char* ip, int& _port) const
+{
+
+     _port = port;
+     if (IsIPv4()) {
+        type = 4;
+        size_t addrlen = sizeof(struct sockaddr_in);
+        struct sockaddr_in _addr;
+        struct sockaddr_in *paddrin = (struct sockaddr_in*)&_addr;
+
+        memset(paddrin, 0, addrlen);
+        if (!GetInAddr(&paddrin->sin_addr))
+            return false;
+    
+        inet_ntop(AF_INET, &_addr.sin_addr,  ip, INET_ADDRSTRLEN);
+        return true;
+    }
+    if (IsIPv6()) {
+        type = 6;
+
+        size_t addrlen = sizeof(struct sockaddr_in6);
+        struct sockaddr_in6 _addr;
+        struct sockaddr_in6 *paddrin6 = (struct sockaddr_in6*)&_addr;
+
+        memset(paddrin6, 0, addrlen);
+        if (!GetIn6Addr(&paddrin6->sin6_addr))
+            return false;
+
+        inet_ntop(AF_INET6, &_addr.sin6_addr,  ip, INET6_ADDRSTRLEN);
+        return true;
+    }
+    return false;
+}
+
 std::vector<unsigned char> CService::GetKey() const
 {
      std::vector<unsigned char> vKey;

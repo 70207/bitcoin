@@ -413,6 +413,7 @@ am_libbitcoin_server_a_OBJECTS = libbitcoin_server_a-addrdb.$(OBJEXT) \
 	libbitcoin_server_a-miner.$(OBJEXT) \
 	libbitcoin_server_a-net.$(OBJEXT) \
 	libbitcoin_server_a-net_event.$(OBJEXT) \
+	libbitcoin_server_a-net_db.$(OBJEXT) \
 	libbitcoin_server_a-net_processing.$(OBJEXT) \
 	libbitcoin_server_a-noui.$(OBJEXT) \
 	policy/libbitcoin_server_a-fees.$(OBJEXT) \
@@ -453,7 +454,7 @@ am__libbitcoin_util_a_SOURCES_DIST = support/lockedpool.cpp \
 	consensus/consensus.h consensus/tx_verify.h core_io.h \
 	core_memusage.h cuckoocache.h fs.h httprpc.h httpserver.h \
 	indirectmap.h init.h key.h keystore.h dbwrapper.h limitedmap.h \
-	memusage.h merkleblock.h miner.h net.h net_event.h \
+	memusage.h merkleblock.h miner.h net.h net_event.h net_db.h \
 	net_processing.h netaddress.h netbase.h netmessagemaker.h \
 	noui.h policy/feerate.h policy/fees.h policy/policy.h \
 	policy/rbf.h pow.h protocol.h random.h reverse_iterator.h \
@@ -918,7 +919,7 @@ bitcoin_cli_OBJECTS = $(am_bitcoin_cli_OBJECTS)
 bitcoin_cli_DEPENDENCIES = $(LIBBITCOIN_CLI) $(am__DEPENDENCIES_4) \
 	$(LIBBITCOIN_UTIL) $(LIBBITCOIN_CRYPTO) $(am__DEPENDENCIES_3) \
 	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
-	$(am__DEPENDENCIES_3)
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3)
 bitcoin_cli_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(bitcoin_cli_CXXFLAGS) \
 	$(CXXFLAGS) $(bitcoin_cli_LDFLAGS) $(LDFLAGS) -o $@
@@ -930,7 +931,7 @@ bitcoin_tx_OBJECTS = $(am_bitcoin_tx_OBJECTS)
 bitcoin_tx_DEPENDENCIES = $(am__DEPENDENCIES_4) $(LIBBITCOIN_COMMON) \
 	$(LIBBITCOIN_UTIL) $(LIBBITCOIN_CONSENSUS) \
 	$(LIBBITCOIN_CRYPTO) $(LIBSECP256K1) $(am__DEPENDENCIES_3) \
-	$(am__DEPENDENCIES_3)
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3)
 bitcoin_tx_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(bitcoin_tx_CXXFLAGS) \
 	$(CXXFLAGS) $(bitcoin_tx_LDFLAGS) $(LDFLAGS) -o $@
@@ -946,7 +947,7 @@ bitcoind_DEPENDENCIES = $(LIBBITCOIN_SERVER) $(LIBBITCOIN_COMMON) \
 	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
 	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
 	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3) \
-	$(am__DEPENDENCIES_3)
+	$(am__DEPENDENCIES_3) $(am__DEPENDENCIES_3)
 bitcoind_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(bitcoind_CXXFLAGS) \
 	$(CXXFLAGS) $(bitcoind_LDFLAGS) $(LDFLAGS) -o $@
@@ -1868,6 +1869,7 @@ BITCOIN_CORE_H = \
   miner.h \
   net.h \
   net_event.h \
+  net_db.h \
   net_processing.h \
   netaddress.h \
   netbase.h \
@@ -1933,7 +1935,7 @@ BITCOIN_CORE_H = \
 
 
 # server: shared between bitcoind and bitcoin-qt
-libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
+libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS) $(BTCH_CXXFLAGS)
 libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
   addrdb.cpp \
@@ -1951,6 +1953,7 @@ libbitcoin_server_a_SOURCES = \
   miner.cpp \
   net.cpp \
   net_event.cpp \
+  net_db.cpp \
   net_processing.cpp \
   noui.cpp \
   policy/fees.cpp \
@@ -2098,17 +2101,19 @@ nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # bitcoind binary #
+BTCH_LDFLAGS = 
+BTCH_CXXFLAGS = -I/usr/local/mysql/include
 bitcoind_SOURCES = bitcoind.cpp $(am__append_5)
 bitcoind_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-bitcoind_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-bitcoind_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+bitcoind_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) $(BTCH_CXXFLAGS)
+bitcoind_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) $(BTCH_LDFLAGS)
 bitcoind_LDADD = $(LIBBITCOIN_SERVER) $(LIBBITCOIN_COMMON) \
 	$(LIBUNIVALUE) $(LIBBITCOIN_UTIL) $(LIBBITCOIN_WALLET) \
 	$(LIBBITCOIN_ZMQ) $(LIBBITCOIN_CONSENSUS) $(LIBBITCOIN_CRYPTO) \
 	$(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV) $(LIBSECP256K1) \
 	$(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) \
 	$(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) \
-	$(ZMQ_LIBS)
+	$(ZMQ_LIBS) $(BTCH_LDFLAGS)
 
 # bitcoin-cli binary #
 bitcoin_cli_SOURCES = bitcoin-cli.cpp $(am__append_6)
@@ -2117,7 +2122,7 @@ bitcoin_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 bitcoin_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 bitcoin_cli_LDADD = $(LIBBITCOIN_CLI) $(LIBUNIVALUE) \
 	$(LIBBITCOIN_UTIL) $(LIBBITCOIN_CRYPTO) $(BOOST_LIBS) \
-	$(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
+	$(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS) $(BTCH_LDFLAGS)
 #
 
 # bitcoin-tx binary #
@@ -2128,7 +2133,7 @@ bitcoin_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 bitcoin_tx_LDADD = $(LIBUNIVALUE) $(LIBBITCOIN_COMMON) \
 	$(LIBBITCOIN_UTIL) $(LIBBITCOIN_CONSENSUS) \
 	$(LIBBITCOIN_CRYPTO) $(LIBSECP256K1) $(BOOST_LIBS) \
-	$(CRYPTO_LIBS)
+	$(CRYPTO_LIBS) $(BTCH_LDFLAGS)
 #
 
 # bitcoinconsensus library #
@@ -2352,7 +2357,7 @@ EXTRA_DIST = $(CTAES_DIST)
 @ENABLE_TESTS_TRUE@	$(LIBBITCOIN_CONSENSUS) $(BDB_LIBS) \
 @ENABLE_TESTS_TRUE@	$(SSL_LIBS) $(CRYPTO_LIBS) \
 @ENABLE_TESTS_TRUE@	$(MINIUPNPC_LIBS) $(am__append_24)
-@ENABLE_TESTS_TRUE@test_test_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+@ENABLE_TESTS_TRUE@test_test_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS) 
 @ENABLE_TESTS_TRUE@test_test_bitcoin_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS) -static
 #
 
@@ -3923,6 +3928,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-miner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-net.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-net_db.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-net_event.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-net_processing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-noui.Po@am__quote@
@@ -5641,6 +5647,20 @@ libbitcoin_server_a-net_event.obj: net_event.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='net_event.cpp' object='libbitcoin_server_a-net_event.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-net_event.obj `if test -f 'net_event.cpp'; then $(CYGPATH_W) 'net_event.cpp'; else $(CYGPATH_W) '$(srcdir)/net_event.cpp'; fi`
+
+libbitcoin_server_a-net_db.o: net_db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-net_db.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-net_db.Tpo -c -o libbitcoin_server_a-net_db.o `test -f 'net_db.cpp' || echo '$(srcdir)/'`net_db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-net_db.Tpo $(DEPDIR)/libbitcoin_server_a-net_db.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='net_db.cpp' object='libbitcoin_server_a-net_db.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-net_db.o `test -f 'net_db.cpp' || echo '$(srcdir)/'`net_db.cpp
+
+libbitcoin_server_a-net_db.obj: net_db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-net_db.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-net_db.Tpo -c -o libbitcoin_server_a-net_db.obj `if test -f 'net_db.cpp'; then $(CYGPATH_W) 'net_db.cpp'; else $(CYGPATH_W) '$(srcdir)/net_db.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-net_db.Tpo $(DEPDIR)/libbitcoin_server_a-net_db.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='net_db.cpp' object='libbitcoin_server_a-net_db.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-net_db.obj `if test -f 'net_db.cpp'; then $(CYGPATH_W) 'net_db.cpp'; else $(CYGPATH_W) '$(srcdir)/net_db.cpp'; fi`
 
 libbitcoin_server_a-net_processing.o: net_processing.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-net_processing.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-net_processing.Tpo -c -o libbitcoin_server_a-net_processing.o `test -f 'net_processing.cpp' || echo '$(srcdir)/'`net_processing.cpp

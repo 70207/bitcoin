@@ -7,6 +7,7 @@
 #define BITCOIN_ADDRMAN_H
 
 #include <netaddress.h>
+#include <net_db.h>
 #include <protocol.h>
 #include <random.h>
 #include <sync.h>
@@ -381,6 +382,14 @@ public:
             CAddrInfo &info = mapInfo[n];
             s >> info;
             mapAddr[info] = n;
+            {
+                int type = 0;
+                char ip[512];
+                int port = 0;
+                ip[0] = 0;
+                info.GetSockAddr(type, ip, port);
+                BtchDB::GetInstance()->AddAddress(type, ip, port);
+            }
             info.nRandomPos = vRandom.size();
             vRandom.push_back(n);
             if (nVersion != 1 || nUBuckets != ADDRMAN_NEW_BUCKET_COUNT) {
@@ -528,7 +537,21 @@ public:
         int nAdd = 0;
         Check();
         for (std::vector<CAddress>::const_iterator it = vAddr.begin(); it != vAddr.end(); it++)
-            nAdd += Add_(*it, source, nTimePenalty) ? 1 : 0;
+        {
+            if(Add_(*it, source, nTimePenalty)){
+                // int type = 0;
+                // char ip[512];
+                // int port = 0;
+                // ip[0] = 0;
+                // const CAddress& addr = *it;
+                // addr.GetSockAddr(type, ip, port);
+                // BtchDB::GetInstance()->AddAddress(type, ip, port);
+                nAdd ++;
+            }
+
+
+
+        }
         Check();
         if (nAdd) {
             LogPrint(BCLog::ADDRMAN, "Added %i addresses from %s: %i tried, %i new\n", nAdd, source.ToString(), nTried, nNew);
