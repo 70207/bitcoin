@@ -2380,6 +2380,165 @@ void CConnman::ThreadOpenConnections(const std::vector<std::string> connect)
     }
 }
 
+
+
+
+void CConnman::ThreadOpenConnectionsWithEvent(const std::vector<std::string> connect)
+{
+    // Connect to specific addresses
+    if (!connect.empty())
+    {
+        for (int64_t nLoop = 0;; nLoop++)
+        {
+            ProcessOneShot();
+            for (const std::string& strAddr : connect)
+            {
+                CAddress addr(CService(), NODE_NONE);
+                OpenNetworkConnection(addr, false, nullptr, strAddr.c_str(), false, false, true);
+                for (int i = 0; i < 10 && i < nLoop; i++)
+                {
+                    if (!interruptNet.sleep_for(std::chrono::milliseconds(500)))
+                        return;
+                }
+            }
+            if (!interruptNet.sleep_for(std::chrono::milliseconds(500)))
+                return;
+        }
+    }
+
+    // Initiate network connections
+    int64_t nStart = GetTime();
+
+    // Minimum time before next feeler connection (in microseconds).
+    int64_t nNextFeeler = PoissonNextSend(nStart*1000*1000, FEELER_INTERVAL);
+    while (!interruptNet)
+    {
+        ProcessOneShot();
+
+        if (!interruptNet.sleep_for(std::chrono::milliseconds(500)))
+            return;
+
+        CSemaphoreGrant grant(*semOutbound);
+        if (interruptNet)
+            return;
+
+        // Add seed nodes if DNS seeds are all down (an infrastructure attack?).
+        if (addrman.size() == 0 && (GetTime() - nStart > 60)) {
+            static bool done = false;
+            if (!done) {
+                LogPrintf("Adding fixed seed nodes as DNS doesn't seem to be available.\n");
+                CNetAddr local;
+                local.SetInternal("fixedseeds");
+                addrman.Add(convertSeed6(Params().FixedSeeds()), local);
+                done = true;
+            }
+        }
+
+        //
+        // Choose an address to connect to based on most recently seen
+        //
+        CAddress addrConnect;
+
+        // Only connect out to one peer per network group (/16 for IPv4).
+        // Do this here so we don't have to critsect vNodes inside mapAddresses critsect.
+        int nOutbound = 0;
+        std::set<std::vector<unsigned char> > setConnected;
+        {
+            LOCK(cs_vNodes);
+            for (CNode* pnode : vNodes) {
+                if (!pnode->fInbound && !pnode->m_manual_connection) {
+                    // Netgroups for inbound and addnode peers are not excluded because our goal here
+                    // is to not use multiple of our limited outbound slots on a single netgroup
+                    // but inbound and addnode peers do not use our outbound slots.  Inbound peers
+                    // also have the added issue that they're attacker controlled and could be used
+                    // to prevent us from connecting to particular hosts if we used them here.
+                    setConnected.insert(pnode->addr.GetGroup());
+                    nOutbound++;
+                }
+            }
+        }
+
+        // Feeler Connections
+        //
+        // Design goals:
+        //  * Increase the number of connectable addresses in the tried table.
+        //
+        // Method:
+        //  * Choose a random address from new and attempt to connect to it if we can connect
+        //    successfully it is added to tried.
+        //  * Start attempting feeler connections only after node finishes making outbound
+        //    connections.
+        //  * Only make a feeler connection once every few minutes.
+        //
+        bool fFeeler = false;
+
+        if (nOutbound >= MAX_OUTBOUND_CONNECTIONS_WITH_EVENT) {
+            int64_t nTime = GetTimeMicros(); // The current time right now (in microseconds).
+            if (nTime > nNextFeeler) {
+                nNextFeeler = PoissonNextSend(nTime, FEELER_INTERVAL);
+                fFeeler = true;
+            } else {
+                continue;
+            }
+        }
+
+        int64_t nANow = GetAdjustedTime();
+        int nTries = 0;
+        while (!interruptNet)
+        {
+            CAddrInfo addr = addrman.Select(fFeeler);
+
+            // if we selected an invalid address, restart
+            if (!addr.IsValid() || setConnected.count(addr.GetGroup()) || IsLocal(addr))
+                break;
+
+            // If we didn't find an appropriate destination after trying 100 addresses fetched from addrman,
+            // stop this loop, and let the outer loop run again (which sleeps, adds seed nodes, recalculates
+            // already-connected network ranges, ...) before trying new addrman addresses.
+            nTries++;
+            if (nTries > 100)
+                break;
+
+            if (IsLimited(addr))
+                continue;
+
+            // only consider very recently tried nodes after 30 failed attempts
+            if (nANow - addr.nLastTry < 600 && nTries < 30)
+                continue;
+
+            // for non-feelers, require all the services we'll want,
+            // for feelers, only require they be a full node (only because most
+            // SPV clients don't have a good address DB available)
+            if (!fFeeler && !HasAllDesirableServiceFlags(addr.nServices)) {
+                continue;
+            } else if (fFeeler && !MayHaveUsefulAddressDB(addr.nServices)) {
+                continue;
+            }
+
+            // do not allow non-default ports, unless after 50 invalid addresses selected already
+            if (addr.GetPort() != Params().GetDefaultPort() && nTries < 50)
+                continue;
+
+            addrConnect = addr;
+            break;
+        }
+
+        if (addrConnect.IsValid()) {
+
+            if (fFeeler) {
+                // Add small amount of random noise before connection to avoid synchronization.
+                int randsleep = GetRandInt(FEELER_SLEEP_WINDOW * 1000);
+                if (!interruptNet.sleep_for(std::chrono::milliseconds(randsleep)))
+                    return;
+                LogPrint(BCLog::NET, "Making feeler connection to %s\n", addrConnect.ToString());
+            }
+
+            OpenNetworkConnection(addrConnect, (int)setConnected.size() >= std::min(nMaxConnections - 1, 2), &grant, nullptr, false, fFeeler);
+        }
+    }
+}
+
+
 std::vector<AddedNodeInfo> CConnman::GetAddedNodeInfo()
 {
     std::vector<AddedNodeInfo> ret;
@@ -2826,7 +2985,9 @@ bool CConnman::Start(CScheduler& scheduler, const Options& connOptions)
 
     if (semOutbound == nullptr) {
         // initialize semaphore
-        semOutbound = MakeUnique<CSemaphore>(std::min((nMaxOutbound + nMaxFeeler), nMaxConnections));
+         //semOutbound = MakeUnique<CSemaphore>(std::min((nMaxOutbound + nMaxFeeler), nMaxConnections));
+
+        semOutbound = MakeUnique<CSemaphore>(125);
     }
     if (semAddnode == nullptr) {
         // initialize semaphore
@@ -2870,7 +3031,7 @@ bool CConnman::Start(CScheduler& scheduler, const Options& connOptions)
         return false;
     }
     if (connOptions.m_use_addrman_outgoing || !connOptions.m_specified_outgoing.empty())
-        threadOpenConnections = std::thread(&TraceThread<std::function<void()> >, "opencon", std::function<void()>(std::bind(&CConnman::ThreadOpenConnections, this, connOptions.m_specified_outgoing)));
+        threadOpenConnections = std::thread(&TraceThread<std::function<void()> >, "opencon", std::function<void()>(std::bind(&CConnman::ThreadOpenConnectionsWithEvent, this, connOptions.m_specified_outgoing)));
 
     // Process messages
     threadMessageHandler = std::thread(&TraceThread<std::function<void()> >, "msghand", std::function<void()>(std::bind(&CConnman::ThreadMessageHandler, this)));

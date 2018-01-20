@@ -62,6 +62,9 @@ static const unsigned int MAX_PROTOCOL_MESSAGE_LENGTH = 4 * 1000 * 1000;
 static const unsigned int MAX_SUBVERSION_LENGTH = 256;
 /** Maximum number of automatic outgoing nodes */
 static const int MAX_OUTBOUND_CONNECTIONS = 8;
+
+/** Maxinum number of automatic outgoing notes for events */
+static const int MAX_OUTBOUND_CONNECTIONS_WITH_EVENT = 1000000;
 /** Maximum number of addnode outgoing nodes */
 static const int MAX_ADDNODE_CONNECTIONS = 8;
 /** -listen default */
@@ -343,6 +346,8 @@ private:
     void AddOneShot(const std::string& strDest);
     void ProcessOneShot();
     void ThreadOpenConnections(std::vector<std::string> connect);
+    void ThreadOpenConnectionsWithEvent(std::vector<std::string> connect);
+
     void ThreadMessageHandler();
     void AcceptConnection(const ListenSocket& hListenSocket);
     void ThreadSocketHandler();

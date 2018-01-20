@@ -865,12 +865,14 @@ bool AppInitBasicSetup()
         umask(077);
     }
 
-    // Clean shutdown on SIGTERM
-    registerSignalHandler(SIGTERM, HandleSIGTERM);
-    registerSignalHandler(SIGINT, HandleSIGTERM);
 
-    // Reopen debug.log on SIGHUP
-    registerSignalHandler(SIGHUP, HandleSIGHUP);
+    //disable signal hanlder to debug
+    // Clean shutdown on SIGTERM
+    // registerSignalHandler(SIGTERM, HandleSIGTERM);
+    // registerSignalHandler(SIGINT, HandleSIGTERM);
+
+    // // Reopen debug.log on SIGHUP
+    // registerSignalHandler(SIGHUP, HandleSIGHUP);
 
     // Ignore SIGPIPE, otherwise it will bring the daemon down if the client closes unexpectedly
     signal(SIGPIPE, SIG_IGN);
