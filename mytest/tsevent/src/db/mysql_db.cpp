@@ -155,3 +155,17 @@ bool BtchDB::AddUnCheckedAddress(int type, const char *ip, int port)
     sprintf(buffer, sql, _ucTable, type, ip, port);
     return Execute(&_ucAddConn ,buffer);
 }
+
+
+
+bool BtchDB::AddBlock(BtchBlock* block)
+{
+    char buffer[4096];
+    const char* sql = "insert into %s("
+
+}
+
+bool BtchDB::AddTransaction(BtchTransaction* tx)
+{
+
+}
