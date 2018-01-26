@@ -9,7 +9,7 @@
 #include <string>
 
 struct BtchTransactionCoinBase{
-    std::string     tx_id;
+    std::string     tx_hash;
     std::string     coinbase_hash;
     long            coinbase_sequence;
     long            coinbase_value;
@@ -30,7 +30,7 @@ struct BtchTransactionOut{
 
 
 struct BtchTransaction{
-    std::string             tx_id;
+    std::string             tx_hash;
     int                     tx_in_count;
     int                     tx_out_out;
     BtchTransactionIn*      tx_in;
@@ -38,9 +38,10 @@ struct BtchTransaction{
 };
 
 struct BtchBlock{
-    std::string             block_id;
-    int                     tx_count;
-    BtchTransaction*        tx;
+    std::string                 block_hash;
+    int                         tx_count;
+    BtchTransaction*            tx;
+    BtchTransactionCoinBase*    coin_base;
 };
 
 
@@ -66,6 +67,15 @@ class BtchDB
         bool AddBlock(BtchBlock* block);
         bool AddTransaction(BtchTransaction* tx);
 
+    private:
+        bool AddBlockTransaction(BtchTransaction* tx, long block_id);
+        bool AddBlockTransactionCoinBase(BtchTransactionCoinBase* tx, long block_id);
+
+
+        bool AddTxTransaction(BtchTransaction* tx);
+
+        bool AddTxTransactionIn(void** conn, BtchTransactionIn* tx_in, long tx_id, int index);
+        bool AddTxTransactionOut(void** conn, BtchTransactionOut* tx_out, long tx_id, int index);
 
     private:
         BtchDB();
@@ -77,6 +87,8 @@ class BtchDB
 
         bool Execute(void** conn, const char* sql);
 
+        long Insert(void** conn, const char* sql);
+
     private:
         void*      _addConn;
         void*      _enableConn;
@@ -84,9 +96,14 @@ class BtchDB
 
         void*      _ucAddConn;
 
+        void*      _blockConn;
+        void*      _txConn;
+
         const char* _db;
         const char* _table;
         const char* _ucTable;
+
+
 };
 
 
