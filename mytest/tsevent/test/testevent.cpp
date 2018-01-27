@@ -4,24 +4,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <event.h>
-#include <mysql_db.h>
 
-bool testInsert(BtchDB* db){
-    if(!db->AddAddress(4, "217.19.31.69", 8333)){
-        return false;
-    }
-
-    return db->AddAddress(4, "217.19.31.62", 8333);
-}
-
-bool testEnable(BtchDB* db){
-    return db->EnableAddress(4, "217.19.31.69", 8333);
-}
-
-
-bool testDisable(BtchDB* db){
-    return db->AddAddress(4, "217.19.31.62", 8333);
-}
 
 void testEvent(){
     BtchEventLoop* loop = new BtchEventLoop();
@@ -65,20 +48,6 @@ void testEvent(){
 
 int main(int argc, char** argv)
 {
-    BtchDB* db = BtchDB::GetInstance();
-    db->Init("bitcoin", "test");
-
-    if(!testInsert(db)){
-        printf("insert failed\n");
-    }
-
-    if(!testEnable(db)){
-        printf("enable failed\n");
-    }
-
-    if(!testDisable(db)){
-        printf("disable failed\n");
-    }
-
+    testEvent();
     return 0;
 }

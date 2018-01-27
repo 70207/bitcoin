@@ -5,23 +5,37 @@ TEST_DIR=./test
 EVENT_SRC=$(wildcard ./src/event/*.cpp)
 EVENT_OBJ=$(patsubst %.cpp, %.o, $(EVENT_SRC))
 
-TEST_SRC=$(wildcard ./test/*.cpp)
-TEST_OBJ=$(patsubst %.cpp, %.o, $(TEST_SRC))
+TEST_ADDRESS_SRC=./test/testaddress.cpp
+TEST_ADDRESS_OBJ=./test/testaddress.o
+
+TEST_TX_SRC=./test/testtx.cpp
+TEST_TX_OBJ=./test/testtx.o
+
+TEST_EVENT_SRC=./test/testevent.cpp
+TEST_EVENT_OBJ=./test/testevent.o
 
 DB_SRC=$(wildcard ./src/db/*.cpp)
 DB_OBJ=$(patsubst %.cpp, %.o, $(DB_SRC))
 
-SRC=$(EVENT_SRC) $(TEST_SRC) $(DB_SRC)
-OBJ=$(EVENT_OBJ) $(TEST_OBJ) $(DB_OBJ)
+LIBSRC=$(EVENT_SRC) $(DB_SRC)
+LIBOBJ=$(EVENT_OBJ) $(DB_OBJ)
 
 CC=g++
 
 CPPFLAGS += -g -I$(EVENT_DIR) -I$(DB_DIR) -I/usr/local/mysql/include -std=c++11
 LDFLAGS = -L/usr/local/mysql/lib -lmysqlclient
 
-all: test/test
 
-test/test: $(OBJ)
+
+all: target/testtx target/testevent target/testaddress
+
+target/testtx: $(LIBOBJ) $(TEST_TX_OBJ)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+target/testaddress: $(LIBOBJ) $(TEST_ADDRESS_OBJ)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+target/testevent: $(LIBOBJ) $(TEST_EVENT_OBJ)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(EVENT_DIR)/%.o : $(EVENT_DIR)/%.cpp 
@@ -36,7 +50,7 @@ $(TEST_DIR)/%.o : $(TEST_DIR)/%.cpp
 
 
 clean:
-	rm -f $(TEST_OBJ)
+	rm -f $(TEST_ADDRESS_OBJ) $(TEST_TX_OBJ) $(TEST_EVENT_OBJ)
 	rm -f $(EVENT_OBJ)
 	rm -f $(DB_OBJ)
-	rm -f test/test
+	rm -f target/testtx target/testaddress target/testevent

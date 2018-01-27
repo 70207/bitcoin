@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef __BTCH_DB_H__
-#define __BTCH_DB_H__
+#ifndef __BTCH_TX_DB_H__
+#define __BTCH_TX_DB_H__
 
 
 #include <string>
@@ -32,7 +32,7 @@ struct BtchTransactionOut{
 struct BtchTransaction{
     std::string             tx_hash;
     int                     tx_in_count;
-    int                     tx_out_out;
+    int                     tx_out_count;
     BtchTransactionIn*      tx_in;
     BtchTransactionOut*     tx_out;
 };
@@ -45,30 +45,22 @@ struct BtchBlock{
 };
 
 
-class BtchDB 
+class BtchTxDB 
 {
     public:
-        static BtchDB* GetInstance();
+        static BtchTxDB* GetInstance();
 
-        BtchDB(const BtchDB &) = delete;
-        BtchDB &operator=(const BtchDB &) = delete;
-
-
-
-        bool Init(const char* db = "bitcoin", const char* table = "address", const char* ucTable = "ucAddress");
-
-        bool AddAddress(int type, const char *ip, int port);
-        bool EnableAddress(int type, const char *ip, int port);
-        bool DisableAddress(int type, const char *ip, int port);
-
-        bool AddUnCheckedAddress(int type, const char *ip, int port);
+        BtchTxDB(const BtchTxDB &) = delete;
+        BtchTxDB &operator=(const BtchTxDB &) = delete;
 
 
+
+        bool Init(const char* db = "bitcoin");
         bool AddBlock(BtchBlock* block);
         bool AddTransaction(BtchTransaction* tx);
 
     private:
-        bool AddBlockTransaction(BtchTransaction* tx, long block_id);
+        bool AddBlockTransaction(BtchTransaction* tx, long block_id, int index);
         bool AddBlockTransactionCoinBase(BtchTransactionCoinBase* tx, long block_id);
 
 
@@ -78,7 +70,7 @@ class BtchDB
         bool AddTxTransactionOut(void** conn, BtchTransactionOut* tx_out, long tx_id, int index);
 
     private:
-        BtchDB();
+        BtchTxDB();
 
 
         bool ReConnect(void** conn);
@@ -90,18 +82,12 @@ class BtchDB
         long Insert(void** conn, const char* sql);
 
     private:
-        void*      _addConn;
-        void*      _enableConn;
-        void*      _disableConn;
-
-        void*      _ucAddConn;
 
         void*      _blockConn;
         void*      _txConn;
 
         const char* _db;
-        const char* _table;
-        const char* _ucTable;
+
 
 
 };

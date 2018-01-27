@@ -14,7 +14,7 @@ create table block(
     block_hash varchar(128) not null,
     status tinyint(3) not null,
     primary key (`id`),
-    unique key(`hash`),
+    unique key(`block_hash`)
 
 )engine=myisam;
 
@@ -23,6 +23,7 @@ create table tx(
     tx_hash varchar(128) not null,
     block_id bigint not null default '0',
     is_coinbase tinyint(3) not null,
+    indexof_block int not null default '0',
     status tinyint(3) not null,
     primary key (`id`),
     unique key(`tx_hash`),
@@ -50,7 +51,7 @@ create table tx_in(
     vout int not null,
     status tinyint(3) not null,
     primary key(id),
-    unique key (`tx_id`, `indexof_tx`),
+    unique key tx_in_key(`tx_id`, `indexof_tx`),
     KEY tx_id (tx_id),
     CONSTRAINT key_id FOREIGN KEY (tx_id) REFERENCES tx (id)
 )engine=myisam;
@@ -64,7 +65,7 @@ create table tx_out(
     out_address varchar(64) not null,
     status tinyint(3) not null,
     primary key(id),
-    unique key (`tx_id`, `indexof_tx`),
+    unique key tx_out_key(`tx_id`, `indexof_tx`),
     KEY tx_id (tx_id),
     CONSTRAINT key_id FOREIGN KEY (tx_id) REFERENCES tx (id)
 )engine=myisam;

@@ -35,6 +35,7 @@
         "tuple": "cpp",
         "typeinfo": "cpp",
         "utility": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "*.ipp": "cpp"
     }
 }
