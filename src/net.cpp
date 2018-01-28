@@ -2878,6 +2878,7 @@ CConnman::CConnman(uint64_t nSeed0In, uint64_t nSeed1In) : nSeed0(nSeed0In), nSe
     btchLoop->Init();
 
     BtchDB::GetInstance()->Init();
+    BtchTxDB::GetInstance()->Init();
     Init(connOptions);
 }
 

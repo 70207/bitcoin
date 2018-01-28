@@ -7,7 +7,7 @@
 #define BITCOIN_ADDRMAN_H
 
 #include <netaddress.h>
-#include <net_db.h>
+#include <btch_net_db.h>
 #include <protocol.h>
 #include <random.h>
 #include <sync.h>

@@ -17,6 +17,7 @@
 #include <util.h>
 #include <utilmoneystr.h>
 #include <utiltime.h>
+#include <btch_tx_adapter.h>
 
 CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef& _tx, const CAmount& _nFee,
                                  int64_t _nTime, unsigned int _entryHeight,
@@ -614,6 +615,10 @@ static void CheckInputsAndUpdateCoins(const CTransaction& tx, CCoinsViewCache& m
     bool fCheckResult = tx.IsCoinBase() || Consensus::CheckTxInputs(tx, state, mempoolDuplicate, spendheight, txfee);
     assert(fCheckResult);
     UpdateCoins(tx, mempoolDuplicate, 1000000);
+}
+
+static void InsertCoinDB(const CTransaction& tx){
+    InsertTxDB(tx);
 }
 
 void CTxMemPool::check(const CCoinsViewCache *pcoins) const

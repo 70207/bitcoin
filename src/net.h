@@ -31,8 +31,9 @@
 #include <condition_variable>
 
 
-#include <net_event.h>
-#include <net_db.h>
+#include <btch_net_event.h>
+#include <btch_net_db.h>
+#include <btch_tx_db.h>
 
 #ifndef WIN32
 #include <arpa/inet.h>

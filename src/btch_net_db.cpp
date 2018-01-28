@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <mysql.h>
 #include <errmsg.h>
-#include <net_db.h>
+#include <btch_net_db.h>
 
 
 static BtchDB* g_btch_db = 0;
