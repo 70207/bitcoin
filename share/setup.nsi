@@ -10,11 +10,11 @@ SetCompressor /SOLID lzma
 !define URL https://bitcoincore.org/
 
 # MUI Symbol Definitions
-!define MUI_ICON "/space/workspace/btc/share/pixmaps/bitcoin.ico"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "/space/workspace/btc/share/pixmaps/nsis-wizard.bmp"
+!define MUI_ICON "/space/workspace/2btc/share/pixmaps/bitcoin.ico"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "/space/workspace/2btc/share/pixmaps/nsis-wizard.bmp"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
-!define MUI_HEADERIMAGE_BITMAP "/space/workspace/btc/share/pixmaps/nsis-header.bmp"
+!define MUI_HEADERIMAGE_BITMAP "/space/workspace/2btc/share/pixmaps/nsis-header.bmp"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_REGISTRY_KEY ${REGKEY}
@@ -22,7 +22,7 @@ SetCompressor /SOLID lzma
 !define MUI_STARTMENUPAGE_DEFAULTFOLDER "Bitcoin Core"
 !define MUI_FINISHPAGE_RUN $INSTDIR\bitcoin-qt
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
-!define MUI_UNWELCOMEFINISHPAGE_BITMAP "/space/workspace/btc/share/pixmaps/nsis-wizard.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "/space/workspace/2btc/share/pixmaps/nsis-wizard.bmp"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
 # Included files
@@ -48,7 +48,7 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile /space/workspace/btc/bitcoin-${VERSION}-win-setup.exe
+OutFile /space/workspace/2btc/bitcoin-${VERSION}-win-setup.exe
 !if "" == "64"
 InstallDir $PROGRAMFILES64\Bitcoin
 !else
@@ -73,14 +73,14 @@ ShowUninstDetails show
 Section -Main SEC0000
     SetOutPath $INSTDIR
     SetOverwrite on
-    File /space/workspace/btc/release/bitcoin-qt
-    File /oname=COPYING.txt /space/workspace/btc/COPYING
-    File /oname=readme.txt /space/workspace/btc/doc/README_windows.txt
+    File /space/workspace/2btc/release/bitcoin-qt
+    File /oname=COPYING.txt /space/workspace/2btc/COPYING
+    File /oname=readme.txt /space/workspace/2btc/doc/README_windows.txt
     SetOutPath $INSTDIR\daemon
-    File /space/workspace/btc/release/bitcoind
-    File /space/workspace/btc/release/bitcoin-cli
+    File /space/workspace/2btc/release/bitcoind
+    File /space/workspace/2btc/release/bitcoin-cli
     SetOutPath $INSTDIR\doc
-    File /r /space/workspace/btc/doc\*.*
+    File /r /space/workspace/2btc/doc\*.*
     SetOutPath $INSTDIR
     WriteRegStr HKCU "${REGKEY}\Components" Main 1
 SectionEnd

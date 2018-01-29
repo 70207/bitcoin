@@ -412,8 +412,10 @@ am_libbitcoin_server_a_OBJECTS = libbitcoin_server_a-addrdb.$(OBJEXT) \
 	libbitcoin_server_a-merkleblock.$(OBJEXT) \
 	libbitcoin_server_a-miner.$(OBJEXT) \
 	libbitcoin_server_a-net.$(OBJEXT) \
-	libbitcoin_server_a-net_event.$(OBJEXT) \
-	libbitcoin_server_a-net_db.$(OBJEXT) \
+	libbitcoin_server_a-btch_net_event.$(OBJEXT) \
+	libbitcoin_server_a-btch_net_db.$(OBJEXT) \
+	libbitcoin_server_a-btch_tx_adapter.$(OBJEXT) \
+	libbitcoin_server_a-btch_tx_db.$(OBJEXT) \
 	libbitcoin_server_a-net_processing.$(OBJEXT) \
 	libbitcoin_server_a-noui.$(OBJEXT) \
 	policy/libbitcoin_server_a-fees.$(OBJEXT) \
@@ -454,13 +456,14 @@ am__libbitcoin_util_a_SOURCES_DIST = support/lockedpool.cpp \
 	consensus/consensus.h consensus/tx_verify.h core_io.h \
 	core_memusage.h cuckoocache.h fs.h httprpc.h httpserver.h \
 	indirectmap.h init.h key.h keystore.h dbwrapper.h limitedmap.h \
-	memusage.h merkleblock.h miner.h net.h net_event.h net_db.h \
-	net_processing.h netaddress.h netbase.h netmessagemaker.h \
-	noui.h policy/feerate.h policy/fees.h policy/policy.h \
-	policy/rbf.h pow.h protocol.h random.h reverse_iterator.h \
-	reverselock.h rpc/blockchain.h rpc/client.h rpc/mining.h \
-	rpc/protocol.h rpc/safemode.h rpc/server.h rpc/register.h \
-	scheduler.h script/sigcache.h script/sign.h script/standard.h \
+	memusage.h merkleblock.h miner.h net.h btch_net_event.h \
+	btch_net_db.h btch_tx_db.h btch_tx_adapter.h net_processing.h \
+	netaddress.h netbase.h netmessagemaker.h noui.h \
+	policy/feerate.h policy/fees.h policy/policy.h policy/rbf.h \
+	pow.h protocol.h random.h reverse_iterator.h reverselock.h \
+	rpc/blockchain.h rpc/client.h rpc/mining.h rpc/protocol.h \
+	rpc/safemode.h rpc/server.h rpc/register.h scheduler.h \
+	script/sigcache.h script/sign.h script/standard.h \
 	script/ismine.h streams.h support/allocators/secure.h \
 	support/allocators/zeroafterfree.h support/cleanse.h \
 	support/events.h support/lockedpool.h sync.h threadsafety.h \
@@ -1868,8 +1871,10 @@ BITCOIN_CORE_H = \
   merkleblock.h \
   miner.h \
   net.h \
-  net_event.h \
-  net_db.h \
+  btch_net_event.h \
+  btch_net_db.h \
+  btch_tx_db.h \
+  btch_tx_adapter.h \
   net_processing.h \
   netaddress.h \
   netbase.h \
@@ -1952,8 +1957,10 @@ libbitcoin_server_a_SOURCES = \
   merkleblock.cpp \
   miner.cpp \
   net.cpp \
-  net_event.cpp \
-  net_db.cpp \
+  btch_net_event.cpp \
+  btch_net_db.cpp \
+  btch_tx_adapter.cpp \
+  btch_tx_db.cpp \
   net_processing.cpp \
   noui.cpp \
   policy/fees.cpp \
@@ -3919,6 +3926,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-addrman.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-blockencodings.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-bloom.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-btch_net_db.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-btch_net_event.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-btch_tx_adapter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-btch_tx_db.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-chain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-checkpoints.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-dbwrapper.Po@am__quote@
@@ -3928,8 +3939,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-merkleblock.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-miner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-net.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-net_db.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-net_event.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-net_processing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-noui.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbitcoin_server_a-pow.Po@am__quote@
@@ -5634,33 +5643,61 @@ libbitcoin_server_a-net.obj: net.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-net.obj `if test -f 'net.cpp'; then $(CYGPATH_W) 'net.cpp'; else $(CYGPATH_W) '$(srcdir)/net.cpp'; fi`
 
-libbitcoin_server_a-net_event.o: net_event.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-net_event.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-net_event.Tpo -c -o libbitcoin_server_a-net_event.o `test -f 'net_event.cpp' || echo '$(srcdir)/'`net_event.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-net_event.Tpo $(DEPDIR)/libbitcoin_server_a-net_event.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='net_event.cpp' object='libbitcoin_server_a-net_event.o' libtool=no @AMDEPBACKSLASH@
+libbitcoin_server_a-btch_net_event.o: btch_net_event.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-btch_net_event.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-btch_net_event.Tpo -c -o libbitcoin_server_a-btch_net_event.o `test -f 'btch_net_event.cpp' || echo '$(srcdir)/'`btch_net_event.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-btch_net_event.Tpo $(DEPDIR)/libbitcoin_server_a-btch_net_event.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='btch_net_event.cpp' object='libbitcoin_server_a-btch_net_event.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-net_event.o `test -f 'net_event.cpp' || echo '$(srcdir)/'`net_event.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-btch_net_event.o `test -f 'btch_net_event.cpp' || echo '$(srcdir)/'`btch_net_event.cpp
 
-libbitcoin_server_a-net_event.obj: net_event.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-net_event.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-net_event.Tpo -c -o libbitcoin_server_a-net_event.obj `if test -f 'net_event.cpp'; then $(CYGPATH_W) 'net_event.cpp'; else $(CYGPATH_W) '$(srcdir)/net_event.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-net_event.Tpo $(DEPDIR)/libbitcoin_server_a-net_event.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='net_event.cpp' object='libbitcoin_server_a-net_event.obj' libtool=no @AMDEPBACKSLASH@
+libbitcoin_server_a-btch_net_event.obj: btch_net_event.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-btch_net_event.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-btch_net_event.Tpo -c -o libbitcoin_server_a-btch_net_event.obj `if test -f 'btch_net_event.cpp'; then $(CYGPATH_W) 'btch_net_event.cpp'; else $(CYGPATH_W) '$(srcdir)/btch_net_event.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-btch_net_event.Tpo $(DEPDIR)/libbitcoin_server_a-btch_net_event.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='btch_net_event.cpp' object='libbitcoin_server_a-btch_net_event.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-net_event.obj `if test -f 'net_event.cpp'; then $(CYGPATH_W) 'net_event.cpp'; else $(CYGPATH_W) '$(srcdir)/net_event.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-btch_net_event.obj `if test -f 'btch_net_event.cpp'; then $(CYGPATH_W) 'btch_net_event.cpp'; else $(CYGPATH_W) '$(srcdir)/btch_net_event.cpp'; fi`
 
-libbitcoin_server_a-net_db.o: net_db.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-net_db.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-net_db.Tpo -c -o libbitcoin_server_a-net_db.o `test -f 'net_db.cpp' || echo '$(srcdir)/'`net_db.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-net_db.Tpo $(DEPDIR)/libbitcoin_server_a-net_db.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='net_db.cpp' object='libbitcoin_server_a-net_db.o' libtool=no @AMDEPBACKSLASH@
+libbitcoin_server_a-btch_net_db.o: btch_net_db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-btch_net_db.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-btch_net_db.Tpo -c -o libbitcoin_server_a-btch_net_db.o `test -f 'btch_net_db.cpp' || echo '$(srcdir)/'`btch_net_db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-btch_net_db.Tpo $(DEPDIR)/libbitcoin_server_a-btch_net_db.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='btch_net_db.cpp' object='libbitcoin_server_a-btch_net_db.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-net_db.o `test -f 'net_db.cpp' || echo '$(srcdir)/'`net_db.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-btch_net_db.o `test -f 'btch_net_db.cpp' || echo '$(srcdir)/'`btch_net_db.cpp
 
-libbitcoin_server_a-net_db.obj: net_db.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-net_db.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-net_db.Tpo -c -o libbitcoin_server_a-net_db.obj `if test -f 'net_db.cpp'; then $(CYGPATH_W) 'net_db.cpp'; else $(CYGPATH_W) '$(srcdir)/net_db.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-net_db.Tpo $(DEPDIR)/libbitcoin_server_a-net_db.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='net_db.cpp' object='libbitcoin_server_a-net_db.obj' libtool=no @AMDEPBACKSLASH@
+libbitcoin_server_a-btch_net_db.obj: btch_net_db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-btch_net_db.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-btch_net_db.Tpo -c -o libbitcoin_server_a-btch_net_db.obj `if test -f 'btch_net_db.cpp'; then $(CYGPATH_W) 'btch_net_db.cpp'; else $(CYGPATH_W) '$(srcdir)/btch_net_db.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-btch_net_db.Tpo $(DEPDIR)/libbitcoin_server_a-btch_net_db.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='btch_net_db.cpp' object='libbitcoin_server_a-btch_net_db.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-net_db.obj `if test -f 'net_db.cpp'; then $(CYGPATH_W) 'net_db.cpp'; else $(CYGPATH_W) '$(srcdir)/net_db.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-btch_net_db.obj `if test -f 'btch_net_db.cpp'; then $(CYGPATH_W) 'btch_net_db.cpp'; else $(CYGPATH_W) '$(srcdir)/btch_net_db.cpp'; fi`
+
+libbitcoin_server_a-btch_tx_adapter.o: btch_tx_adapter.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-btch_tx_adapter.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-btch_tx_adapter.Tpo -c -o libbitcoin_server_a-btch_tx_adapter.o `test -f 'btch_tx_adapter.cpp' || echo '$(srcdir)/'`btch_tx_adapter.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-btch_tx_adapter.Tpo $(DEPDIR)/libbitcoin_server_a-btch_tx_adapter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='btch_tx_adapter.cpp' object='libbitcoin_server_a-btch_tx_adapter.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-btch_tx_adapter.o `test -f 'btch_tx_adapter.cpp' || echo '$(srcdir)/'`btch_tx_adapter.cpp
+
+libbitcoin_server_a-btch_tx_adapter.obj: btch_tx_adapter.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-btch_tx_adapter.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-btch_tx_adapter.Tpo -c -o libbitcoin_server_a-btch_tx_adapter.obj `if test -f 'btch_tx_adapter.cpp'; then $(CYGPATH_W) 'btch_tx_adapter.cpp'; else $(CYGPATH_W) '$(srcdir)/btch_tx_adapter.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-btch_tx_adapter.Tpo $(DEPDIR)/libbitcoin_server_a-btch_tx_adapter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='btch_tx_adapter.cpp' object='libbitcoin_server_a-btch_tx_adapter.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-btch_tx_adapter.obj `if test -f 'btch_tx_adapter.cpp'; then $(CYGPATH_W) 'btch_tx_adapter.cpp'; else $(CYGPATH_W) '$(srcdir)/btch_tx_adapter.cpp'; fi`
+
+libbitcoin_server_a-btch_tx_db.o: btch_tx_db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-btch_tx_db.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-btch_tx_db.Tpo -c -o libbitcoin_server_a-btch_tx_db.o `test -f 'btch_tx_db.cpp' || echo '$(srcdir)/'`btch_tx_db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-btch_tx_db.Tpo $(DEPDIR)/libbitcoin_server_a-btch_tx_db.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='btch_tx_db.cpp' object='libbitcoin_server_a-btch_tx_db.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-btch_tx_db.o `test -f 'btch_tx_db.cpp' || echo '$(srcdir)/'`btch_tx_db.cpp
+
+libbitcoin_server_a-btch_tx_db.obj: btch_tx_db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-btch_tx_db.obj -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-btch_tx_db.Tpo -c -o libbitcoin_server_a-btch_tx_db.obj `if test -f 'btch_tx_db.cpp'; then $(CYGPATH_W) 'btch_tx_db.cpp'; else $(CYGPATH_W) '$(srcdir)/btch_tx_db.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbitcoin_server_a-btch_tx_db.Tpo $(DEPDIR)/libbitcoin_server_a-btch_tx_db.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='btch_tx_db.cpp' object='libbitcoin_server_a-btch_tx_db.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -c -o libbitcoin_server_a-btch_tx_db.obj `if test -f 'btch_tx_db.cpp'; then $(CYGPATH_W) 'btch_tx_db.cpp'; else $(CYGPATH_W) '$(srcdir)/btch_tx_db.cpp'; fi`
 
 libbitcoin_server_a-net_processing.o: net_processing.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libbitcoin_server_a_CPPFLAGS) $(CPPFLAGS) $(libbitcoin_server_a_CXXFLAGS) $(CXXFLAGS) -MT libbitcoin_server_a-net_processing.o -MD -MP -MF $(DEPDIR)/libbitcoin_server_a-net_processing.Tpo -c -o libbitcoin_server_a-net_processing.o `test -f 'net_processing.cpp' || echo '$(srcdir)/'`net_processing.cpp

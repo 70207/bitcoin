@@ -114,6 +114,8 @@ BITCOIN_CORE_H = \
   net.h \
   btch_net_event.h \
   btch_net_db.h \
+  btch_tx_db.h \
+  btch_tx_adapter.h \
   net_processing.h \
   netaddress.h \
   netbase.h \
@@ -204,6 +206,8 @@ libbitcoin_server_a_SOURCES = \
   net.cpp \
   btch_net_event.cpp \
   btch_net_db.cpp \
+  btch_tx_adapter.cpp \
+  btch_tx_db.cpp \
   net_processing.cpp \
   noui.cpp \
   policy/fees.cpp \

@@ -2878,7 +2878,7 @@ CConnman::CConnman(uint64_t nSeed0In, uint64_t nSeed1In) : nSeed0(nSeed0In), nSe
     btchLoop->Init();
 
     BtchDB::GetInstance()->Init();
-    BtchTxDB::GetInstance()->Init();
+
     Init(connOptions);
 }
 
@@ -2988,7 +2988,7 @@ bool CConnman::Start(CScheduler& scheduler, const Options& connOptions)
         // initialize semaphore
          //semOutbound = MakeUnique<CSemaphore>(std::min((nMaxOutbound + nMaxFeeler), nMaxConnections));
 
-        semOutbound = MakeUnique<CSemaphore>(125);
+        semOutbound = MakeUnique<CSemaphore>(16);
     }
     if (semAddnode == nullptr) {
         // initialize semaphore

@@ -5,6 +5,40 @@
 #include <btch_tx_db.h>
 
 
+BtchTransaction::BtchTransaction()
+:tx_in_count(0), tx_out_count(0)
+,tx_in(0), tx_out(0),is_coinbase(0)
+{
+
+}
+
+BtchTransaction::~BtchTransaction()
+{
+    if(tx_in){
+        delete[] tx_in;
+    }
+
+    if(tx_out){
+        delete[] tx_out;
+    }
+}
+
+
+BtchBlock::BtchBlock()
+:tx_count(0),tx(0)
+{
+
+}
+
+BtchBlock::~BtchBlock()
+{
+    if(tx){
+        delete[] tx;
+    }
+
+}
+
+
 static BtchTxDB* btch_tx_db = 0;
 
 BtchTxDB* BtchTxDB::GetInstance()
@@ -149,20 +183,38 @@ long BtchTxDB::Insert(void** conn, const char* sql)
     return 0;
 }
 
+// create table block(
+//     `id` bigint auto_increment not null,
+//     `block_hash` varchar(128) not null,
+//     `pre_block_hash` varchar(128) not null, 
+//     `version` int not null, 
+//     `time` int not null,
+//     `bits` int not null,
+//     `nonce` int not null,
+
+//     `status` tinyint(3) not null,
+//     primary key (`id`),
+//     unique key(`block_hash`)
+// )engine=myisam;
 
 
-bool BtchTxDB::AddBlock(BtchBlock* block)
+bool BtchTxDB::AddBlock(BtchBlock* block, int height)
 {
     fprintf(stderr,"add block, block hash:%s\n", block->block_hash.c_str());
 
     char buffer[4096];
-    const char* sql = "insert into block(`block_hash`,`status`) values('%s', 2) on duplicate key update `id` = LAST_INSERT_ID(`id`), `status` = 2";
+    const char* sql = "insert into block(`height`, `block_hash`, `pre_block_hash`,`version`, `time`, `bits`, `nonce`,\
+                    `tx_count`,`status`) values(%d, '%s', '%s', %u, %u, %u, %u,%d,\
+                    2) on duplicate key update `id` = LAST_INSERT_ID(`id`), `status` = 2";
 
-    sprintf(buffer, sql, block->block_hash.c_str());
+    sprintf(buffer, sql,  height, block->block_hash.c_str(), block->pre_block_hash.c_str(),
+    block->version, block->time, block->bits, block->nonce, block->tx_count);
+
+   // printf("sql:%s\n", buffer);
 
     long block_id = Insert(&_blockConn, buffer);
     if(!block_id){
-        fprintf(stderr, "%s\n", "insert block failed, block hash:%s", block->block_hash.c_str());
+        fprintf(stderr, "insert block failed, nonce:%u, block hash:%s\n", block->nonce, block->block_hash.c_str());
         return false;
     }
     
@@ -171,14 +223,14 @@ bool BtchTxDB::AddBlock(BtchBlock* block)
         BtchTransaction* tx = block->tx + i;
         bool flag = AddBlockTransaction(tx, block_id, i);
         if(!flag){
-            fprintf(stderr, "%s\n", "insert transaction failed, tx hash:%s", tx->tx_hash.c_str());
+            fprintf(stderr, "insert transaction failed, tx hash:%s\n", tx->tx_hash.c_str());
             return false;
         }
     }
 
-    if(block->coin_base){
-        return AddBlockTransactionCoinBase(block->coin_base, block_id);
-    }
+    // if(block->coin_base){
+    //     return AddBlockTransactionCoinBase(block->coin_base, block_id);
+    // }
 
     return true;
 
@@ -216,10 +268,13 @@ bool BtchTxDB::AddTransaction(BtchTransaction* tx)
 bool BtchTxDB::AddBlockTransaction(BtchTransaction* tx, long block_id, int index)
 {
     fprintf(stderr,"add block trasaction, block id:%ld, tx hash:%s\n", block_id, tx->tx_hash.c_str());
-    char buffer[4096];
-    const char* sql = "insert into tx(`tx_hash`, `block_id`, `indexof_block`, `is_coinbase`, `status`) values('%s',\
-                %ld, %d, 1, 2) on duplicate key update  `id` = LAST_INSERT_ID(`id`), `status` = 2";
-    sprintf(buffer, sql, tx->tx_hash.c_str(), block_id, index);
+    char buffer[40960];
+    const char* sql = "insert into tx(`tx_hash`, `block_id`, `indexof_block`, `is_coinbase`, \
+                    `tx_in_count`, `tx_out_count`,`status`) values('%s', %ld, %d, %d,\
+                    %d, %d,\
+                    2) on duplicate key update  `id` = LAST_INSERT_ID(`id`), `status` = 2";
+    sprintf(buffer, sql, tx->tx_hash.c_str(), block_id, index, tx->is_coinbase, 
+        tx->tx_in_count, tx->tx_out_count);
 
     long tx_id = Insert(&_blockConn, buffer);
     if (!tx_id)
@@ -228,20 +283,26 @@ bool BtchTxDB::AddBlockTransaction(BtchTransaction* tx, long block_id, int index
         return false;
     }
 
+    tx->tx_id = tx_id;
     for (int i = 0; i < tx->tx_in_count; ++i)
     {
-        if (!AddTxTransactionIn(&_blockConn, tx->tx_in + i, tx_id, i))
+        if (!AddTxTransactionIn(&_blockConn, tx->tx_in + i, tx))
         {
-            fprintf(stderr, "insert tx in failed, block id:%ld, tx hash:%s, i:%d\n", block_id, tx->tx_hash.c_str(), i);
+            fprintf(stderr, "insert block tx in failed, block id:%ld, tx hash:%s, i:%d\n", block_id, tx->tx_hash.c_str(), i);
+            return false;
+        }
+
+        if(!CheckTxTransactionUXTO(&_blockConn, tx->tx_in + i, tx)){
+            fprintf(stderr, "check block tx in failed, tx hash:%s, i:%d\n",tx->tx_hash.c_str(), i);
             return false;
         }
     }
 
     for (int i = 0; i < tx->tx_out_count; ++i)
     {
-        if (!AddTxTransactionOut(&_txConn, tx->tx_out + i, tx_id, i))
+        if (!AddTxTransactionOut(&_txConn, tx->tx_out + i, tx))
         {
-            fprintf(stderr, "insert tx out failed, block id:%ld, tx hash:%s, i:%d\n", block_id, tx->tx_hash.c_str(), i);
+            fprintf(stderr, "insert block tx out failed, block id:%ld, tx hash:%s, i:%d\n", block_id, tx->tx_hash.c_str(), i);
             return false;
         }
     }
@@ -253,7 +314,7 @@ bool BtchTxDB::AddBlockTransaction(BtchTransaction* tx, long block_id, int index
 bool BtchTxDB::AddTxTransaction(BtchTransaction* tx)
 {
     fprintf(stderr,"add tx trasaction, tx hash:%s\n", tx->tx_hash.c_str());
-    char buffer[4096];
+    char buffer[40960];
     const char* sql = "insert into tx(`tx_hash`, `is_coinbase`, `status`) values('%s', 0, 1) \
         on duplicate key update  `id` = LAST_INSERT_ID(`id`), `status` = `status`";
     sprintf(buffer, sql, tx->tx_hash.c_str());
@@ -267,16 +328,21 @@ bool BtchTxDB::AddTxTransaction(BtchTransaction* tx)
 
     for (int i = 0; i < tx->tx_in_count; ++i)
     {
-        if (!AddTxTransactionIn(&_txConn, tx->tx_in + i, tx_id, i))
+        if (!AddTxTransactionIn(&_txConn, tx->tx_in + i, tx))
         {
             fprintf(stderr, "insert tx tx in failed, tx hash:%s, i:%d\n",tx->tx_hash.c_str(), i);
+            return false;
+        }
+
+        if(!CheckTxTransactionUXTO(&_txConn, tx->tx_in + i, tx)){
+            fprintf(stderr, "check tx tx in failed, tx hash:%s, i:%d\n",tx->tx_hash.c_str(), i);
             return false;
         }
     }
 
     for (int i = 0; i < tx->tx_out_count; ++i)
     {
-        if (!AddTxTransactionOut(&_txConn, tx->tx_out + i, tx_id, i))
+        if (!AddTxTransactionOut(&_txConn, tx->tx_out + i, tx))
         {
             fprintf(stderr, "insert tx tx out failed, tx hash:%s, i:%d\n",tx->tx_hash.c_str(), i);
             return false;
@@ -305,16 +371,39 @@ bool BtchTxDB::AddTxTransaction(BtchTransaction* tx)
 
 
 
-
-bool BtchTxDB::AddTxTransactionIn(void** conn, BtchTransactionIn* tx_in, long tx_id, int index)
+bool BtchTxDB::AddTxTransactionIn(void** conn, BtchTransactionIn* tx_in, BtchTransaction* tx)
 {
-    fprintf(stderr,"add tx_in trasaction, tx_id:%ld, index:%d\n", tx_id, index);
-    char buffer[4096];
-    const char* sql = "insert into tx_in(`tx_id`, `indexof_tx`, `from_tx_hash`, `vout`, `status`) values(%ld,%d, \
-                '%s', %ld, 1) on duplicate key update `id` = LAST_INSERT_ID(`id`),`status` = `status`";
+    fprintf(stderr,"add tx_in trasaction, tx_id:%ld, index:%d\n", tx->tx_id, tx_in->vin);
+   // fprintf(stderr, "tx in sig hex:%s\n", tx_in->sig_hex.c_str());
 
-    sprintf(buffer, sql, tx_id, index, tx_in->from_tx_hash.c_str(), tx_in->vout);
-    return Insert(conn, buffer) > 0;
+    char buffer[40960];
+    const char* sql = "insert into tx_in(`tx_id`, `tx_hash`, `vin`, \
+                    `from_tx_hash`, `from_tx_vout`, `sequence`,\
+                  `status`) values(%ld, '%s', %d, \
+                   '%s', %d, %ld, 1) \
+                  on duplicate key update `id` = LAST_INSERT_ID(`id`),`status` = `status`";
+
+
+    sprintf(buffer, sql, 
+    tx->tx_id, tx->tx_hash.c_str(), tx_in->vin, 
+    tx_in->from_tx_hash.c_str(),  tx_in->from_tx_vout, tx_in->sequence);
+    bool ret = Insert(conn, buffer) > 0;
+    if(!ret){
+        fprintf(stderr, "add tx_in failed, from tx out:%d\n", tx_in->from_tx_vout);
+    }
+
+    return ret;
+}
+
+bool BtchTxDB::CheckTxTransactionUXTO(void** conn, BtchTransactionIn* tx_in, BtchTransaction* tx)
+{
+    fprintf(stderr,"check uxto trasaction, tx_id:%ld, from_vout:%d, vout:%d\n", tx->tx_id, tx_in->from_tx_vout, tx_in->vin);
+    char buffer[40960];
+    const char* sql = "update tx_out set `status` = 3 where `tx_hash` = '%s' and `vout` = %d";
+
+
+    sprintf(buffer, sql, tx_in->from_tx_hash.c_str(), tx_in->from_tx_vout);
+    return Execute(conn, buffer);
 }
 
 // struct BtchTransactionOut{
@@ -334,14 +423,18 @@ bool BtchTxDB::AddTxTransactionIn(void** conn, BtchTransactionIn* tx_in, long tx
 //     CONSTRAINT key_id FOREIGN KEY (tx_id) REFERENCES tx (id)
 // )engine=myisam;
 
-bool BtchTxDB::AddTxTransactionOut(void** conn, BtchTransactionOut* tx_out, long tx_id, int index)
+bool BtchTxDB::AddTxTransactionOut(void** conn, BtchTransactionOut* tx_out, BtchTransaction* tx)
 {
-    fprintf(stderr,"add tx_out trasaction, tx_id:%ld, index:%d\n", tx_id, index);
-    char buffer[4096];
-    const char* sql = "insert into tx_out(`tx_id`, `indexof_tx`, `vout`, `out_value`,`out_address`,`status`) values(%ld, %d, \
-                %ld, %ld, '%s', 1) on duplicate key update `id` = LAST_INSERT_ID(`id`),`status` = `status`";
+    fprintf(stderr,"add tx_out trasaction, tx_id:%ld, index:%ld\n", tx->tx_id, tx_out->vout);
+    char buffer[40960];
+    const char* sql = "insert into tx_out(`tx_id`, `tx_hash`, `vout`, `out_value`,`out_address`,\
+                            `out_type`,`out_addresses`,`out_addr_count`,`status`) values( \
+                                %ld, '%s', %ld, %ld, '%s', \
+                                '%s', '%s',%d, \
+                                1) on duplicate key update `id` = LAST_INSERT_ID(`id`),`status` = `status`";
 
-    sprintf(buffer, sql, tx_id, index, tx_out->vout, tx_out->out_value, tx_out->out_address.c_str());
+    sprintf(buffer, sql, tx->tx_id,  tx->tx_hash.c_str(),  tx_out->vout, tx_out->out_value, tx_out->out_address.c_str(),
+        tx_out->out_type.c_str(), tx_out->out_addresses.c_str(), tx_out->out_addr_count);
     return Insert(conn, buffer) > 0;
 }
 
@@ -371,7 +464,7 @@ bool BtchTxDB::AddTxTransactionOut(void** conn, BtchTransactionOut* tx_out, long
 bool BtchTxDB::AddBlockTransactionCoinBase(BtchTransactionCoinBase* tx, long block_id)
 {
     fprintf(stderr,"add tx coinbase, block_id:%ld, tx hash:%s\n", block_id, tx->tx_hash.c_str());
-    char buffer[4096];
+    char buffer[40960];
     const char* sql = "insert into tx(`tx_hash`, `block_id`, `is_coinbase`, `status`) values('%s',\
                 %ld, 1, 2) on duplicate key update `id` = LAST_INSERT_ID(`id`), status = 2";
     sprintf(buffer, sql, tx->tx_hash.c_str(), block_id);

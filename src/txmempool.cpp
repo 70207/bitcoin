@@ -608,18 +608,21 @@ void CTxMemPool::clear()
     _clear();
 }
 
+static void InsertCoinDB(const CTransaction& tx){
+    //SaveTx2DB(tx);
+}
+
 static void CheckInputsAndUpdateCoins(const CTransaction& tx, CCoinsViewCache& mempoolDuplicate, const int64_t spendheight)
 {
     CValidationState state;
     CAmount txfee = 0;
     bool fCheckResult = tx.IsCoinBase() || Consensus::CheckTxInputs(tx, state, mempoolDuplicate, spendheight, txfee);
     assert(fCheckResult);
+    InsertCoinDB(tx);
     UpdateCoins(tx, mempoolDuplicate, 1000000);
 }
 
-static void InsertCoinDB(const CTransaction& tx){
-    InsertTxDB(tx);
-}
+
 
 void CTxMemPool::check(const CCoinsViewCache *pcoins) const
 {
