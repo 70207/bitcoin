@@ -19,29 +19,65 @@ struct BtchTransactionCoinBase{
 
 struct BtchTransactionIn{
     std::string     from_tx_hash;
-    long            vout;
+    std::string     coinbase_hash;
+    std::string     sig_hex;
+    long            sequence;
+    int             from_tx_vout;
+    int             vin;
 };
 
 struct BtchTransactionOut{
     long            vout;
     long            out_value;
     std::string     out_address;
+    std::string     out_type;
+    std::string     out_addresses;
+    int             out_addr_count;
 };
-
 
 struct BtchTransaction{
-    std::string             tx_hash;
-    int                     tx_in_count;
-    int                     tx_out_count;
-    BtchTransactionIn*      tx_in;
-    BtchTransactionOut*     tx_out;
+    public:
+    BtchTransaction();
+    ~BtchTransaction();
+
+    long                        tx_id; //for memory
+    std::string                 tx_hash;
+    int                         tx_time;
+    int                         tx_in_count;
+    int                         tx_out_count;
+    BtchTransactionIn*          tx_in;
+    BtchTransactionOut*         tx_out;
+    int                         is_coinbase;
 };
 
+// create table block(
+//     `id` bigint auto_increment not null,
+//     `block_hash` varchar(128) not null,
+//     `pre_block_hash` varchar(128) not null, 
+//     `version` int not null, 
+//     `time` int not null,
+//     `bits` int not null,
+//     `nonce` int not null,
+
+//     `status` tinyint(3) not null,
+//     primary key (`id`),
+//     unique key(`block_hash`)
+// )engine=myisam;
+
 struct BtchBlock{
+    public:
+    BtchBlock();
+   ~BtchBlock();
+    
     std::string                 block_hash;
+    std::string                 pre_block_hash;
+    int                         version;
+    unsigned int                time;
+    unsigned int                bits;
+    unsigned int                nonce;
+
     int                         tx_count;
     BtchTransaction*            tx;
-    BtchTransactionCoinBase*    coin_base;
 };
 
 
@@ -55,8 +91,8 @@ class BtchTxDB
 
 
 
-        bool Init(const char* db = "bitcoin");
-        bool AddBlock(BtchBlock* block);
+        bool Init(const char* db = "bitcointx");
+        bool AddBlock(BtchBlock* block, int height);
         bool AddTransaction(BtchTransaction* tx);
 
     private:
@@ -66,8 +102,9 @@ class BtchTxDB
 
         bool AddTxTransaction(BtchTransaction* tx);
 
-        bool AddTxTransactionIn(void** conn, BtchTransactionIn* tx_in, long tx_id, int index);
-        bool AddTxTransactionOut(void** conn, BtchTransactionOut* tx_out, long tx_id, int index);
+        bool AddTxTransactionIn(void** conn, BtchTransactionIn* tx_in, BtchTransaction* tx);
+        bool AddTxTransactionOut(void** conn, BtchTransactionOut* tx_out, BtchTransaction* tx);
+        bool CheckTxTransactionUXTO(void** conn, BtchTransactionIn* tx_in, BtchTransaction* tx);
 
     private:
         BtchTxDB();

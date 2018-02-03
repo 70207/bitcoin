@@ -46,6 +46,8 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread.hpp>
 
+#include <btch_tx_adapter.h>
+
 #if defined(NDEBUG)
 # error "Bitcoin cannot be compiled without assertions."
 #endif
@@ -3280,8 +3282,17 @@ bool ProcessNewBlockHeaders(const std::vector<CBlockHeader>& headers, CValidatio
     return true;
 }
 
+static void BtchSaveBlock2DB(const CBlock& block, int nHeight)
+{
+       SaveBlock2DB(block, nHeight); 
+}
+
 /** Store block on disk. If dbp is non-nullptr, the file is known to already reside on disk */
 static CDiskBlockPos SaveBlockToDisk(const CBlock& block, int nHeight, const CChainParams& chainparams, const CDiskBlockPos* dbp) {
+
+    BtchSaveBlock2DB(block, nHeight);
+
+
     unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
     CDiskBlockPos blockPos;
     if (dbp != nullptr)

@@ -67,6 +67,8 @@
 #include <zmq/zmqnotificationinterface.h>
 #endif
 
+#include <btch_tx_db.h>
+
 bool fFeeEstimatesInitialized = false;
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
@@ -1374,6 +1376,11 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
         RegisterValidationInterface(pzmqNotificationInterface);
     }
 #endif
+
+
+////btch tx db
+    BtchTxDB::GetInstance()->Init();
+
     uint64_t nMaxOutboundLimit = 0; //unlimited unless -maxuploadtarget is set
     uint64_t nMaxOutboundTimeframe = MAX_UPLOAD_TIMEFRAME;
 
